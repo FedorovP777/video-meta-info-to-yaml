@@ -13,7 +13,6 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
 
 set(CMAKE_CXX_STANDARD 20)
 find_package(yaml-cpp)
-find_package(fmt)
 find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
 find_library(AVCODEC_LIBRARY avcodec)
 #
@@ -28,16 +27,16 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(video_meta_reader src/main.cpp src/utils.h)
 target_include_directories(video_meta_reader PRIVATE ${AVCODEC_INCLUDE_DIR} ${LIBSWSCALE_INCLUDE_DIR})
-target_link_libraries(video_meta_reader PRIVATE yaml-cpp uuid fmt pthread ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
+target_link_libraries(video_meta_reader PRIVATE yaml-cpp uuid pthread ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
 
-################################
-# PVS-Studio
-################################
-
-include(./PVS-Studio.cmake)
-
-pvs_studio_add_target(TARGET video_meta_reader_analyze ALL
-        OUTPUT FORMAT errorfile
-        ANALYZE ${PROJECT_NAME}
-        MODE GA:1,2 OP
-        LOG target.err)
+#################################
+## PVS-Studio
+#################################
+#
+#include(./PVS-Studio.cmake)
+#
+#pvs_studio_add_target(TARGET video_meta_reader_analyze ALL
+#        OUTPUT FORMAT errorfile
+#        ANALYZE ${PROJECT_NAME}
+#        MODE GA:1,2 OP
+#        LOG target.err)

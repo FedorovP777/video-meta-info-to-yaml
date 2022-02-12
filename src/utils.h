@@ -12,7 +12,6 @@ using namespace std;
 #include <string>
 #include <vector>
 #include <iostream>
-#include <fmt/core.h>
 #include <uuid/uuid.h>
 
 extern "C" {

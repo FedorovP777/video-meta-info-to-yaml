@@ -17,7 +17,7 @@ extern "C" {
 }
 using namespace std;
 namespace fs = std::filesystem;
-set<string> allowedExtensions = {".mp4", ".mxf"};
+set <string> allowedExtensions = {".mp4", ".mxf"};
 
 void readMetaInfo(Context &context, string file) {
     if (avformat_open_input(&context.cntx, file.c_str(), nullptr, nullptr) < 0) {
@@ -35,64 +35,93 @@ void setKeyValue(YAML::Emitter &out, T1 key, T2 value) {
     out << YAML::Value << value;
 }
 
+string getYamlFilename(int i) {
+    stringstream fileName;
+    fileName << "/output/metadata" << i << ".yaml";
+    return fileName.str();
+}
+
+void endFileYaml(YAML::Emitter *outYaml, string filename) {
+    *outYaml << YAML::EndSeq;
+    stringstream fileName;
+    std::ofstream outputFile(filename);
+    outputFile << outYaml->c_str();
+    outputFile.close();
+    delete outYaml;
+    outYaml = new YAML::Emitter;
+    *outYaml << YAML::BeginSeq;
+}
+
 int main() {
 
-    string path = "../files";
+    string path = "/files";
     auto files = getFolderFiles(path);
-    stringstream outputstr;
-    YAML::Emitter out;
-    out << YAML::BeginSeq;
-
+    int sizeFileYaml = 1000;
+    int counterSizeFileYaml = 0;
+    auto outYaml = new YAML::Emitter;
+    int fileNameCounter = 0;
+    *outYaml << YAML::BeginSeq;
     for (const auto &file : files) {
+
+        if (counterSizeFileYaml >= sizeFileYaml) {
+            endFileYaml(outYaml, getYamlFilename(fileNameCounter));
+            fileNameCounter++;
+            outYaml = new YAML::Emitter;
+            *outYaml << YAML::BeginSeq;
+            counterSizeFileYaml = 0;
+        }
+        counterSizeFileYaml++;
+
+
         auto fileExtension = toLowercase(file.extension());
         stringstream hashFile;
         hashFile << std::hex << std::uppercase << std::setw(16) << fs::hash_value(file);
         if (!allowedExtensions.contains(fileExtension)) {
             continue;
         }
-        out << YAML::BeginMap;
-        setKeyValue(out, "filename", file.filename());
-        setKeyValue(out, "path", file.relative_path());
-        setKeyValue(out, "uuid", genUuid().str());
-        setKeyValue(out, "hash", hashFile.str());
+
+        *outYaml << YAML::BeginMap;
+        setKeyValue(*outYaml, "filename", file.filename());
+        setKeyValue(*outYaml, "path", file.relative_path());
+        setKeyValue(*outYaml, "uuid", genUuid().str());
+        setKeyValue(*outYaml, "hash", hashFile.str());
 
         Context context;
         readMetaInfo(context, file);
 
-        setKeyValue(out, "streams", YAML::BeginSeq);
+        setKeyValue(*outYaml, "streams", YAML::BeginSeq);
 
         for (int i = 0; i < context.cntx->nb_streams; i++) {
             AVStream *stream = context.cntx->streams[i];
-            out << YAML::Value << YAML::BeginMap;
-            setKeyValue(out, "id", i);
-            setKeyValue(out, "type", getCodecType(stream->codecpar->codec_type).str());
+            *outYaml << YAML::Value << YAML::BeginMap;
+            setKeyValue(*outYaml, "id", i);
+            setKeyValue(*outYaml, "type", getCodecType(stream->codecpar->codec_type).str());
 
             if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
                 stringstream aspectRatio;
                 aspectRatio << stream->display_aspect_ratio.num << ":" << stream->display_aspect_ratio.den;
-                setKeyValue(out, "codec", getCodecName(stream->codecpar->codec_id).str());
-                setKeyValue(out, "width", stream->codecpar->width);
-                setKeyValue(out, "height", stream->codecpar->height);
-                setKeyValue(out, "aspect_ratio", aspectRatio.str());
-                setKeyValue(out, "fps", stream->r_frame_rate.num);
-                setKeyValue(out, "bitrate", stream->codecpar->bit_rate);
-                setKeyValue(out, "pix_format", getPixFormatName(stream->codecpar->format).str());
-                setKeyValue(out, "duration", stream->duration);
+                setKeyValue(*outYaml, "codec", getCodecName(stream->codecpar->codec_id).str());
+                setKeyValue(*outYaml, "width", stream->codecpar->width);
+                setKeyValue(*outYaml, "height", stream->codecpar->height);
+                setKeyValue(*outYaml, "aspect_ratio", aspectRatio.str());
+                setKeyValue(*outYaml, "fps", stream->r_frame_rate.num);
+                setKeyValue(*outYaml, "bitrate", stream->codecpar->bit_rate);
+                setKeyValue(*outYaml, "pix_format", getPixFormatName(stream->codecpar->format).str());
+                setKeyValue(*outYaml, "duration", stream->duration);
             }
 
             if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-                setKeyValue(out, "codec", getCodecName(stream->codecpar->codec_id).str());
-                setKeyValue(out, "bitrate", stream->codecpar->bit_rate);
-                setKeyValue(out, "channels", getAudioChannels(stream->codecpar));
+                setKeyValue(*outYaml, "codec", getCodecName(stream->codecpar->codec_id).str());
+                setKeyValue(*outYaml, "bitrate", stream->codecpar->bit_rate);
+                setKeyValue(*outYaml, "channels", getAudioChannels(stream->codecpar));
             }
-            out << YAML::EndMap;
+            *outYaml << YAML::EndMap;
         }
-        out << YAML::EndSeq;
-        out << YAML::EndMap;
+        *outYaml << YAML::EndSeq;
+        *outYaml << YAML::EndMap;
+
     }
-    out << YAML::EndSeq;
-    std::ofstream outputFile("output.yaml");
-    outputFile << out.c_str();
-    outputFile.close();
+    stringstream fileName;
+    endFileYaml(outYaml, getYamlFilename(fileNameCounter));
     return 0;
 }

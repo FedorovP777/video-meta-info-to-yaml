@@ -22,4 +22,22 @@ RUN apt-get install -y \
     zlib1g-dev \
     uuid-dev
 
-RUN cmake --build build --target video_meta_reader
+    # INSTALL PVS-Studio
+RUN wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt | apt-key add - \
+     && wget -O /etc/apt/sources.list.d/viva64.list \
+        https://files.pvs-studio.com/etc/viva64.list \
+     && apt update -yq \
+     && apt install -yq pvs-studio strace \
+     && pvs-studio --version \
+     && apt clean -yq \
+RUN pvs-studio-analyzer credentials PVS-Studio Free FREE-FREE-FREE-FREE
+WORKDIR /app
+RUN mkdir build && mkdir /output
+RUN pwd
+COPY src src
+ADD CMakeLists.txt .
+ADD PVS-Studio.cmake .
+RUN pwd && ls -la . && ls -la ./src
+RUN cd build && cmake -DCMAKE_BUILD_TYPE=Debug /app
+RUN cmake --build /app/build --target video_meta_reader
+CMD /app/build/video_meta_reader
