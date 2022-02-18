@@ -26,7 +26,7 @@ void readMetaInfo(Context &context, string file) {
     if (avformat_find_stream_info(context.cntx, nullptr) < 0) {
         fprintf(stderr, "Failed to retrieve input stream information");
     }
-    av_dump_format(context.cntx, 0, file.c_str(), 0);
+//    av_dump_format(context.cntx, 0, file.c_str(), 0);
 }
 
 template<typename T1, typename T2>
@@ -61,6 +61,8 @@ int main() {
     auto outYaml = new YAML::Emitter;
     int fileNameCounter = 0;
     *outYaml << YAML::BeginSeq;
+    cout << "Total files: " << files.size() << endl;
+    int i = 0;
     for (const auto &file : files) {
 
         if (counterSizeFileYaml >= sizeFileYaml) {
@@ -119,7 +121,7 @@ int main() {
         }
         *outYaml << YAML::EndSeq;
         *outYaml << YAML::EndMap;
-
+        cout  << ++i << "/" << files.size() << endl;
     }
     stringstream fileName;
     endFileYaml(outYaml, getYamlFilename(fileNameCounter));
