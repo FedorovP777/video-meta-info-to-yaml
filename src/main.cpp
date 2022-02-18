@@ -63,7 +63,16 @@ int main() {
     *outYaml << YAML::BeginSeq;
     cout << "Total files: " << files.size() << endl;
     int i = 0;
+    
     for (const auto &file : files) {
+
+        auto fileExtension = toLowercase(file.extension());
+        stringstream hashFile;
+        hashFile << std::hex << std::uppercase << std::setw(16) << fs::hash_value(file);
+
+        if (!allowedExtensions.contains(fileExtension)) {
+            continue;
+        }
 
         if (counterSizeFileYaml >= sizeFileYaml) {
             endFileYaml(outYaml, getYamlFilename(fileNameCounter));
@@ -73,14 +82,6 @@ int main() {
             counterSizeFileYaml = 0;
         }
         counterSizeFileYaml++;
-
-
-        auto fileExtension = toLowercase(file.extension());
-        stringstream hashFile;
-        hashFile << std::hex << std::uppercase << std::setw(16) << fs::hash_value(file);
-        if (!allowedExtensions.contains(fileExtension)) {
-            continue;
-        }
 
         *outYaml << YAML::BeginMap;
         setKeyValue(*outYaml, "filename", file.filename());
