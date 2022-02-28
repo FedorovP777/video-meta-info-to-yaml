@@ -153,12 +153,13 @@ int main() {
   int sizeFileYaml = 10000;
 
   for (auto &range:ranges) {
-    Context context;
 
-    tasks.push_back(std::async(std::launch::async, [&range, &files, &fileNameCounter, &i, &sizeFileYaml, &context]() {
+    tasks.push_back(std::async(std::launch::async, [&range, &files, &fileNameCounter, &i, &sizeFileYaml]() {
       int counterSizeFileYaml = 0;
       auto outYaml = new YAML::Emitter;
       *outYaml << YAML::BeginSeq; // список файлов
+      Context context;
+
       for (int u = range[0]; u <= range[1]; u++) {
 
         if (counterSizeFileYaml >= sizeFileYaml) {  //  Размер файла

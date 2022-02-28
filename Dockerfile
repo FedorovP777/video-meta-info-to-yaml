@@ -38,6 +38,6 @@ COPY src src
 ADD CMakeLists.txt .
 ADD PVS-Studio.cmake .
 RUN pwd && ls -la . && ls -la ./src
-RUN cd build && cmake -DCMAKE_BUILD_TYPE=Debug /app
+RUN cd build && cmake -DCMAKE_BUILD_TYPE=Release /app
 RUN cmake --build /app/build --target video_meta_reader
 CMD /app/build/video_meta_reader

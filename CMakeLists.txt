@@ -11,8 +11,8 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
         /usr/local/lib64
         /usr/lib/x86_64-linux-gnu)
 
-SET(CMAKE_CXX_FLAGS_RELEASE "-O1")
-SET(CMAKE_C_FLAGS_RELEASE "-O1")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_C_FLAGS_RELEASE "-O2")
 
 set(CMAKE_CXX_STANDARD 20)
 find_package(yaml-cpp)
@@ -25,7 +25,7 @@ find_library(AVFORMAT_LIBRARY avformat)
 find_path(LIBSWSCALE_INCLUDE_DIR libswscale/swscale.h)
 find_library(SWSCALE_LIBRARY swscale)
 find_library(AVUTIL_LIBRARY avutil)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 
 add_executable(video_meta_reader src/main.cpp src/utils.h)
